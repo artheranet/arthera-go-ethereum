@@ -20,9 +20,8 @@ package web3ext
 var Modules = map[string]string{
 	"admin":    AdminJs,
 	"clique":   CliqueJs,
-	"ftmash":   FtmashJs,
 	"debug":    DebugJs,
-	"ftm":      FtmJs,
+	"art":      EthJs,
 	"miner":    MinerJs,
 	"net":      NetJs,
 	"personal": PersonalJs,
@@ -84,34 +83,6 @@ web3._extend({
 		new web3._extend.Property({
 			name: 'proposals',
 			getter: 'clique_proposals'
-		}),
-	]
-});
-`
-
-const FtmashJs = `
-web3._extend({
-	property: 'ftmash',
-	methods: [
-		new web3._extend.Method({
-			name: 'getWork',
-			call: 'ethash_getWork',
-			params: 0
-		}),
-		new web3._extend.Method({
-			name: 'getHashrate',
-			call: 'ethash_getHashrate',
-			params: 0
-		}),
-		new web3._extend.Method({
-			name: 'submitWork',
-			call: 'ethash_submitWork',
-			params: 3,
-		}),
-		new web3._extend.Method({
-			name: 'submitHashrate',
-			call: 'ethash_submitHashrate',
-			params: 2,
 		}),
 	]
 });
@@ -466,9 +437,9 @@ web3._extend({
 });
 `
 
-const FtmJs = `
+const EthJs = `
 web3._extend({
-	property: 'ftm',
+	property: 'art',
 	methods: [
 		new web3._extend.Method({
 			name: 'chainId',
