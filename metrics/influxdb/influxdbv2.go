@@ -1,4 +1,3 @@
-//
 // The go-ethereum library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -53,6 +52,8 @@ func InfluxDBV2WithTags(r metrics.Registry, d time.Duration, endpoint string, to
 	rep.client = influxdb2.NewClient(rep.endpoint, rep.token)
 	defer rep.client.Close()
 
+	rep.checkAndCreateBucket()
+
 	// async write client
 	rep.write = rep.client.WriteAPI(rep.organization, rep.bucket)
 	errorsCh := rep.write.Errors()
@@ -64,6 +65,28 @@ func InfluxDBV2WithTags(r metrics.Registry, d time.Duration, endpoint string, to
 		}
 	}()
 	rep.run()
+}
+
+func (r *v2Reporter) checkAndCreateBucket() {
+	ctx := context.Background()
+	defer ctx.Done()
+
+	org, err := r.client.OrganizationsAPI().FindOrganizationByName(ctx, r.organization)
+	if err != nil {
+		log.Error("influxdb organization not found", "organization", r.organization)
+		return
+	}
+
+	_, err = r.client.BucketsAPI().FindBucketByName(ctx, r.bucket)
+	if err != nil {
+		_, err = r.client.BucketsAPI().CreateBucketWithNameWithID(ctx, *org.Id, r.bucket)
+		if err != nil {
+			log.Error("Could not create influxdb bucket", "bucket", r.bucket, "err", err.Error())
+			return
+		}
+	}
+
+	log.Info("Found influxdb bucket", "bucket", r.bucket)
 }
 
 func (r *v2Reporter) run() {
