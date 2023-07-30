@@ -43,14 +43,14 @@ var DefaultConfig = Config{
 	Port:             6060,
 	EnableInfluxDB:   false,
 	InfluxDBEndpoint: "http://localhost:8086",
-	InfluxDBDatabase: "geth",
-	InfluxDBUsername: "test",
-	InfluxDBPassword: "test",
+	InfluxDBDatabase: "arthera",
+	InfluxDBUsername: "arthera",
+	InfluxDBPassword: "arthera",
 	InfluxDBTags:     "host=localhost",
 
 	// influxdbv2-specific flags
 	EnableInfluxDBV2:     false,
 	InfluxDBToken:        "test",
-	InfluxDBBucket:       "geth",
-	InfluxDBOrganization: "geth",
+	InfluxDBBucket:       "arthera",
+	InfluxDBOrganization: "arthera",
 }
