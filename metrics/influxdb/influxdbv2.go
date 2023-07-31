@@ -86,7 +86,7 @@ func (r *v2Reporter) checkAndCreateBucket() {
 		}
 	}
 
-	log.Info("Found influxdb bucket", "bucket", r.bucket)
+	log.Info("Exporting metrics to InfluxDB bucket " + r.bucket)
 }
 
 func (r *v2Reporter) run() {
