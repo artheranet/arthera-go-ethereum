@@ -914,7 +914,7 @@ func (srv *Server) listenLoop() {
 		}
 
 		remoteIP := netutil.AddrIP(fd.RemoteAddr())
-		if err := srv.checkInboundConn(remoteIP); err != nil {
+		if err := srv.checkInboundConn(fd.RemoteAddr()); err != nil {
 			srv.log.Debug("Rejected inbound connection", "addr", fd.RemoteAddr(), "err", err)
 			fd.Close()
 			slots <- struct{}{}
@@ -935,7 +935,8 @@ func (srv *Server) listenLoop() {
 	}
 }
 
-func (srv *Server) checkInboundConn(remoteIP net.IP) error {
+func (srv *Server) checkInboundConn(addr net.Addr) error {
+	remoteIP := netutil.AddrIP(addr)
 	if remoteIP == nil {
 		return nil
 	}
@@ -950,10 +951,10 @@ func (srv *Server) checkInboundConn(remoteIP net.IP) error {
 	// Reject Internet peers that try too often.
 	now := srv.clock.Now()
 	srv.inboundHistory.expire(now, nil)
-	if !netutil.IsLAN(remoteIP) && srv.inboundHistory.contains(remoteIP.String()) {
-		return fmt.Errorf("too many attempts")
+	if !netutil.IsLAN(remoteIP) && srv.inboundHistory.contains(addr.String()) {
+		return fmt.Errorf("too many attempts from %s", remoteIP)
 	}
-	srv.inboundHistory.add(remoteIP.String(), now.Add(inboundThrottleTime))
+	srv.inboundHistory.add(addr.String(), now.Add(inboundThrottleTime))
 	return nil
 }
 
