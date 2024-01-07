@@ -163,6 +163,9 @@ type Tree struct {
 	cache  int                      // Megabytes permitted to use for read caches
 	layers map[common.Hash]snapshot // Collection of all known layers
 	lock   sync.RWMutex
+
+	// Test hooks
+	onFlatten func() // Hook invoked when the bottom most diff layers are flattened
 }
 
 // New attempts to load an already existing snapshot from a persistent key-value
@@ -176,10 +179,10 @@ type Tree struct {
 // If the memory layers in the journal do not match the disk layer (e.g. there is
 // a gap) or the journal is missing, there are two repair cases:
 //
-// - if the 'recovery' parameter is true, all memory diff-layers will be discarded.
-//   This case happens when the snapshot is 'ahead' of the state trie.
-// - otherwise, the entire snapshot is considered invalid and will be recreated on
-//   a background thread.
+//   - if the 'recovery' parameter is true, all memory diff-layers will be discarded.
+//     This case happens when the snapshot is 'ahead' of the state trie.
+//   - otherwise, the entire snapshot is considered invalid and will be recreated on
+//     a background thread.
 func New(diskdb ethdb.KeyValueStore, triedb *trie.Database, cache int, root common.Hash, async bool, rebuild bool, recovery bool) (*Tree, error) {
 	// Create a new, empty snapshot tree
 	snap := &Tree{
@@ -463,14 +466,21 @@ func (t *Tree) cap(diff *diffLayer, layers int) *diskLayer {
 		return nil
 
 	case *diffLayer:
+		// Hold the write lock until the flattened parent is linked correctly.
+		// Otherwise, the stale layer may be accessed by external reads in the
+		// meantime.
+		diff.lock.Lock()
+		defer diff.lock.Unlock()
+
 		// Flatten the parent into the grandparent. The flattening internally obtains a
 		// write lock on grandparent.
 		flattened := parent.flatten().(*diffLayer)
 		t.layers[flattened.root] = flattened
 
-		diff.lock.Lock()
-		defer diff.lock.Unlock()
-
+		// Invoke the hook if it's registered. Ugly hack.
+		if t.onFlatten != nil {
+			t.onFlatten()
+		}
 		diff.parent = flattened
 		if flattened.memory < aggregatorMemoryLimit {
 			// Accumulator layer is smaller than the limit, so we can abort, unless
