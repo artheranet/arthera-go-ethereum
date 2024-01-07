@@ -57,10 +57,11 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		EWASMInterpreter        string
 		EVMInterpreter          string
 		RPCGasCap               uint64
+		RPCEVMTimeout           time.Duration
 		RPCTxFeeCap             float64
 		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
-		OverrideLondon          *big.Int                       `toml:",omitempty"`
+		OverrideArrowGlacier    *big.Int                       `toml:",omitempty"`
 	}
 	var enc Config
 	enc.Genesis = c.Genesis
@@ -102,10 +103,11 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.EWASMInterpreter = c.EWASMInterpreter
 	enc.EVMInterpreter = c.EVMInterpreter
 	enc.RPCGasCap = c.RPCGasCap
+	enc.RPCEVMTimeout = c.RPCEVMTimeout
 	enc.RPCTxFeeCap = c.RPCTxFeeCap
 	enc.Checkpoint = c.Checkpoint
 	enc.CheckpointOracle = c.CheckpointOracle
-	enc.OverrideLondon = c.OverrideLondon
+	enc.OverrideArrowGlacier = c.OverrideArrowGlacier
 	return &enc, nil
 }
 
@@ -148,11 +150,14 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		GPO                     *gasprice.Config
 		EnablePreimageRecording *bool
 		DocRoot                 *string `toml:"-"`
+		EWASMInterpreter        *string
+		EVMInterpreter          *string
 		RPCGasCap               *uint64
+		RPCEVMTimeout           *time.Duration
 		RPCTxFeeCap             *float64
 		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
 		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
-		OverrideLondon          *big.Int                       `toml:",omitempty"`
+		OverrideArrowGlacier    *big.Int                       `toml:",omitempty"`
 	}
 	var dec Config
 	if err := unmarshal(&dec); err != nil {
@@ -266,8 +271,17 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.DocRoot != nil {
 		c.DocRoot = *dec.DocRoot
 	}
+	if dec.EWASMInterpreter != nil {
+		c.EWASMInterpreter = *dec.EWASMInterpreter
+	}
+	if dec.EVMInterpreter != nil {
+		c.EVMInterpreter = *dec.EVMInterpreter
+	}
 	if dec.RPCGasCap != nil {
 		c.RPCGasCap = *dec.RPCGasCap
+	}
+	if dec.RPCEVMTimeout != nil {
+		c.RPCEVMTimeout = *dec.RPCEVMTimeout
 	}
 	if dec.RPCTxFeeCap != nil {
 		c.RPCTxFeeCap = *dec.RPCTxFeeCap
@@ -278,8 +292,8 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.CheckpointOracle != nil {
 		c.CheckpointOracle = dec.CheckpointOracle
 	}
-	if dec.OverrideLondon != nil {
-		c.OverrideLondon = dec.OverrideLondon
+	if dec.OverrideArrowGlacier != nil {
+		c.OverrideArrowGlacier = dec.OverrideArrowGlacier
 	}
 	return nil
 }
