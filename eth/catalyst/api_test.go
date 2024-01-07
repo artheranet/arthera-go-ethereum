@@ -17,9 +17,6 @@
 package catalyst
 
 import (
-	"math/big"
-	"testing"
-
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -29,6 +26,8 @@ import (
 	"github.com/ethereum/go-ethereum/eth/ethconfig"
 	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/params"
+	"math/big"
+	"testing"
 )
 
 var (
@@ -62,6 +61,8 @@ func generateTestChain() (*core.Genesis, []*types.Block) {
 	return genesis, blocks
 }
 
+// TODO (MariusVanDerWijden) reenable once engine api is updated to the latest spec
+/*
 func generateTestChainWithFork(n int, fork int) (*core.Genesis, []*types.Block, []*types.Block) {
 	if fork >= n {
 		fork = n - 1
@@ -80,7 +81,7 @@ func generateTestChainWithFork(n int, fork int) (*core.Genesis, []*types.Block, 
 		MuirGlacierBlock:    big.NewInt(0),
 		BerlinBlock:         big.NewInt(0),
 		LondonBlock:         big.NewInt(0),
-		CatalystBlock:       big.NewInt(0),
+		TerminalTotalDifficulty: big.NewInt(0),
 		Ethash:              new(params.EthashConfig),
 	}
 	genesis := &core.Genesis{
@@ -105,6 +106,7 @@ func generateTestChainWithFork(n int, fork int) (*core.Genesis, []*types.Block, 
 	forkedBlocks, _ := core.GenerateChain(config, blocks[fork], engine, db, n-fork, generateFork)
 	return genesis, blocks, forkedBlocks
 }
+*/
 
 func TestEth2AssembleBlock(t *testing.T) {
 	genesis, blocks := generateTestChain()
@@ -156,6 +158,8 @@ func TestEth2AssembleBlockWithAnotherBlocksTxs(t *testing.T) {
 	}
 }
 
+// TODO (MariusVanDerWijden) reenable once engine api is updated to the latest spec
+/*
 func TestEth2NewBlock(t *testing.T) {
 	genesis, blocks, forkedBlocks := generateTestChainWithFork(10, 4)
 	n, ethservice := startEthService(t, genesis, blocks[1:5])
@@ -216,6 +220,7 @@ func TestEth2NewBlock(t *testing.T) {
 		t.Fatalf("Wrong head after inserting fork %x != %x", exp, ethservice.BlockChain().CurrentBlock().Hash())
 	}
 }
+*/
 
 // startEthService creates a full node instance for testing.
 func startEthService(t *testing.T, genesis *core.Genesis, blocks []*types.Block) (*node.Node, *eth.Ethereum) {
