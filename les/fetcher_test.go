@@ -17,6 +17,7 @@
 package les
 
 import (
+	"github.com/ethereum/go-ethereum/params"
 	"math/big"
 	"testing"
 	"time"
@@ -247,7 +248,7 @@ func testInvalidAnnounces(t *testing.T, protocol int) {
 	// Prepare announcement by latest header.
 	headerOne := s.backend.Blockchain().GetHeaderByNumber(1)
 	hash, number := headerOne.Hash(), headerOne.Number.Uint64()
-	td := big.NewInt(200) // bad td
+	td := big.NewInt(params.GenesisDifficulty.Int64() + 200) // bad td
 
 	// Sign the announcement if necessary.
 	announce := announceData{hash, number, td, 0, nil}
