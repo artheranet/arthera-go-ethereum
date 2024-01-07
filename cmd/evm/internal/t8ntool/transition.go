@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/cmd/utils"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -66,9 +65,14 @@ func (n *NumberedError) Error() string {
 	return fmt.Sprintf("ERROR(%d): %v", n.errorCode, n.err.Error())
 }
 
-func (n *NumberedError) Code() int {
+func (n *NumberedError) ExitCode() int {
 	return n.errorCode
 }
+
+// compile-time conformance test
+var (
+	_ cli.ExitCoder = (*NumberedError)(nil)
+)
 
 type input struct {
 	Alloc core.GenesisAlloc `json:"alloc,omitempty"`
@@ -77,7 +81,7 @@ type input struct {
 	TxRlp string            `json:"txsRlp,omitempty"`
 }
 
-func Main(ctx *cli.Context) error {
+func Transition(ctx *cli.Context) error {
 	// Configure the go-ethereum logger
 	glogger := log.NewGlogHandler(log.StreamHandler(os.Stderr, log.TerminalFormat(false)))
 	glogger.Verbosity(log.Lvl(ctx.Int(VerbosityFlag.Name)))
@@ -85,10 +89,10 @@ func Main(ctx *cli.Context) error {
 
 	var (
 		err     error
-		tracer  vm.Tracer
+		tracer  vm.EVMLogger
 		baseDir = ""
 	)
-	var getTracer func(txIndex int, txHash common.Hash) (vm.Tracer, error)
+	var getTracer func(txIndex int, txHash common.Hash) (vm.EVMLogger, error)
 
 	// If user specified a basedir, make sure it exists
 	if ctx.IsSet(OutputBasedir.Name) {
@@ -115,7 +119,7 @@ func Main(ctx *cli.Context) error {
 				prevFile.Close()
 			}
 		}()
-		getTracer = func(txIndex int, txHash common.Hash) (vm.Tracer, error) {
+		getTracer = func(txIndex int, txHash common.Hash) (vm.EVMLogger, error) {
 			if prevFile != nil {
 				prevFile.Close()
 			}
@@ -127,7 +131,7 @@ func Main(ctx *cli.Context) error {
 			return vm.NewJSONLogger(logConfig, traceFile), nil
 		}
 	} else {
-		getTracer = func(txIndex int, txHash common.Hash) (tracer vm.Tracer, err error) {
+		getTracer = func(txIndex int, txHash common.Hash) (tracer vm.EVMLogger, err error) {
 			return nil, nil
 		}
 	}
@@ -180,20 +184,9 @@ func Main(ctx *cli.Context) error {
 	prestate.Env = *inputData.Env
 
 	vmConfig := vm.Config{
-		Tracer:           tracer,
-		Debug:            (tracer != nil),
-		EVMInterpreter:   ctx.String(utils.EVMInterpreterFlag.Name),
-		EWASMInterpreter: ctx.String(utils.EWASMInterpreterFlag.Name),
+		Tracer: tracer,
+		Debug:  (tracer != nil),
 	}
-
-	if vmConfig.EVMInterpreter != "" {
-		vm.InitEVMCEVM(vmConfig.EVMInterpreter)
-	}
-
-	if vmConfig.EWASMInterpreter != "" {
-		vm.InitEVMCEwasm(vmConfig.EWASMInterpreter)
-	}
-
 	// Construct the chainconfig
 	var chainConfig *params.ChainConfig
 	if cConf, extraEips, err := tests.GetChainConfig(ctx.String(ForknameFlag.Name)); err != nil {
@@ -263,6 +256,20 @@ func Main(ctx *cli.Context) error {
 		if prestate.Env.BaseFee == nil {
 			return NewError(ErrorVMConfig, errors.New("EIP-1559 config but missing 'currentBaseFee' in env section"))
 		}
+	}
+	if env := prestate.Env; env.Difficulty == nil {
+		// If difficulty was not provided by caller, we need to calculate it.
+		switch {
+		case env.ParentDifficulty == nil:
+			return NewError(ErrorVMConfig, errors.New("currentDifficulty was not provided, and cannot be calculated due to missing parentDifficulty"))
+		case env.Number == 0:
+			return NewError(ErrorVMConfig, errors.New("currentDifficulty needs to be provided for block number 0"))
+		case env.Timestamp <= env.ParentTimestamp:
+			return NewError(ErrorVMConfig, fmt.Errorf("currentDifficulty cannot be calculated -- currentTime (%d) needs to be after parent time (%d)",
+				env.Timestamp, env.ParentTimestamp))
+		}
+		prestate.Env.Difficulty = calcDifficulty(chainConfig, env.Number, env.Timestamp,
+			env.ParentTimestamp, env.ParentDifficulty, env.ParentUncleHash)
 	}
 	// Run the test and aggregate the result
 	s, result, err := prestate.Apply(vmConfig, chainConfig, txs, ctx.Int64(RewardFlag.Name), getTracer)
@@ -408,7 +415,7 @@ func dispatchOutput(ctx *cli.Context, baseDir string, result *ExecutionResult, a
 		return err
 	}
 	if len(stdOutObject) > 0 {
-		b, err := json.MarshalIndent(stdOutObject, "", " ")
+		b, err := json.MarshalIndent(stdOutObject, "", "  ")
 		if err != nil {
 			return NewError(ErrorJson, fmt.Errorf("failed marshalling output: %v", err))
 		}
@@ -416,12 +423,12 @@ func dispatchOutput(ctx *cli.Context, baseDir string, result *ExecutionResult, a
 		os.Stdout.WriteString("\n")
 	}
 	if len(stdErrObject) > 0 {
-		b, err := json.MarshalIndent(stdErrObject, "", " ")
+		b, err := json.MarshalIndent(stdErrObject, "", "  ")
 		if err != nil {
 			return NewError(ErrorJson, fmt.Errorf("failed marshalling output: %v", err))
 		}
 		os.Stderr.Write(b)
-		os.Stdout.WriteString("\n")
+		os.Stderr.WriteString("\n")
 	}
 	return nil
 }
