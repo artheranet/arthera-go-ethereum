@@ -47,7 +47,9 @@ func (l *JSONLogger) CaptureStart(env *vm.EVM, from, to common.Address, create b
 	l.env = env
 }
 
-func (l *JSONLogger) CaptureFault(*vm.EVM, uint64, vm.OpCode, uint64, uint64, *vm.ScopeContext, int, error) {
+func (l *JSONLogger) CaptureFault(env *vm.EVM, pc uint64, op vm.OpCode, gas uint64, cost uint64, scope *vm.ScopeContext, depth int, err error) {
+	// TODO: Add rData to this interface as well
+	l.CaptureState(env, pc, op, gas, cost, scope, nil, depth, err)
 }
 
 // CaptureState outputs state information on the logger.
