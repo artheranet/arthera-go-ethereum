@@ -18,6 +18,7 @@ package runtime
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 	"math/big"
 	"os"
 	"strings"
@@ -323,7 +324,7 @@ func TestBlockhash(t *testing.T) {
 }
 
 type stepCounter struct {
-	inner *vm.JSONLogger
+	inner *logger.JSONLogger
 	steps int
 }
 
@@ -533,7 +534,7 @@ func TestEip2929Cases(t *testing.T) {
 		Execute(code, nil, &Config{
 			EVMConfig: vm.Config{
 				Debug:     true,
-				Tracer:    vm.NewMarkdownLogger(nil, os.Stdout),
+				Tracer:    logger.NewMarkdownLogger(nil, os.Stdout),
 				ExtraEips: []int{2929},
 			},
 		})
@@ -683,7 +684,7 @@ func TestColdAccountAccessCost(t *testing.T) {
 			want: 7600,
 		},
 	} {
-		tracer := vm.NewStructLogger(nil)
+		tracer := logger.NewStructLogger(nil)
 		Execute(tc.code, nil, &Config{
 			EVMConfig: vm.Config{
 				Debug:  true,

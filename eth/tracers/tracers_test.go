@@ -17,6 +17,7 @@
 package tracers
 
 import (
+	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 	"math/big"
 	"testing"
 
@@ -95,7 +96,7 @@ func BenchmarkTransactionTrace(b *testing.B) {
 	}
 	_, statedb := tests.MakePreState(rawdb.NewMemoryDatabase(), alloc, false)
 	// Create the tracer, the EVM environment and run it
-	tracer := vm.NewStructLogger(&vm.LogConfig{
+	tracer := logger.NewStructLogger(&logger.Config{
 		Debug: false,
 		//DisableStorage: true,
 		//EnableMemory: false,
