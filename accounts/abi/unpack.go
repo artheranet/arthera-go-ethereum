@@ -193,6 +193,9 @@ func forTupleUnpack(t Type, output []byte) (interface{}, error) {
 	virtualArgs := 0
 	for index, elem := range t.TupleElems {
 		marshalledValue, err := toGoType((index+virtualArgs)*32, *elem, output)
+		if err != nil {
+			return nil, err
+		}
 		if elem.T == ArrayTy && !isDynamicType(*elem) {
 			// If we have a static array, like [3]uint256, these are coded as
 			// just like uint256,uint256,uint256.
