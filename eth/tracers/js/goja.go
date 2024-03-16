@@ -19,10 +19,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
-	"time"
-
 	"github.com/dop251/goja"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -284,9 +282,8 @@ func (t *jsTracer) CaptureFault(env *vm.EVM, pc uint64, op vm.OpCode, gas, cost 
 }
 
 // CaptureEnd is called after the call finishes to finalize the tracing.
-func (t *jsTracer) CaptureEnd(output []byte, gasUsed uint64, duration time.Duration, err error) {
+func (t *jsTracer) CaptureEnd(output []byte, gasUsed uint64, err error) {
 	t.ctx["output"] = t.vm.ToValue(output)
-	t.ctx["time"] = t.vm.ToValue(duration.String())
 	if err != nil {
 		t.ctx["error"] = t.vm.ToValue(err.Error())
 	}
