@@ -25,6 +25,7 @@ require (
 	github.com/edsrzf/mmap-go v1.0.0
 	github.com/ethereum/evmc/v10 v10.0.0
 	github.com/fatih/color v1.7.0
+	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e // indirect
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5
 	github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff
 	github.com/go-ole/go-ole v1.2.1 // indirect
