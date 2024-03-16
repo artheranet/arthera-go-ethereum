@@ -64,7 +64,10 @@ const (
 	SHL
 	SHR
 	SAR
+)
 
+// 0x20 range - crypto.
+const (
 	KECCAK256 OpCode = 0x20
 )
 
