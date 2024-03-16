@@ -19,6 +19,7 @@ package vm
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+	"time"
 )
 
 // EVMLogger is used to collect execution traces from an EVM transaction
@@ -32,7 +33,7 @@ type EVMLogger interface {
 	CaptureTxEnd(restGas uint64)
 	// Top call frame
 	CaptureStart(env *EVM, from common.Address, to common.Address, create bool, input []byte, gas uint64, value *big.Int)
-	CaptureEnd(output []byte, gasUsed uint64, err error)
+	CaptureEnd(output []byte, gasUsed uint64, t time.Duration, err error)
 
 	// Rest of call frames
 	CaptureEnter(typ OpCode, from common.Address, to common.Address, input []byte, gas uint64, value *big.Int)
