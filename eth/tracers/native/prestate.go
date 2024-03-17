@@ -132,6 +132,7 @@ func (t *prestateTracer) CaptureEnd(output []byte, gasUsed uint64, err error) {
 
 // CaptureState implements the EVMLogger interface to trace a single step of VM execution.
 func (t *prestateTracer) CaptureState(env *vm.EVM, pc uint64, op vm.OpCode, gas, cost uint64, scope *vm.ScopeContext, rData []byte, depth int, err error) {
+	t.env = env
 	stack := scope.Stack
 	stackData := stack.Data()
 	stackLen := len(stackData)
@@ -277,6 +278,8 @@ func (t *prestateTracer) lookupAccount(addr common.Address) {
 // it to the prestate of the given contract. It assumes `lookupAccount`
 // has been performed on the contract before.
 func (t *prestateTracer) lookupStorage(addr common.Address, key common.Hash) {
+	t.lookupAccount(addr)
+
 	if _, ok := t.pre[addr].Storage[key]; ok {
 		return
 	}

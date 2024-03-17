@@ -577,3 +577,11 @@ func (evm *EVM) StopGasMetering() {
 func (evm *EVM) StartGasMetering() {
 	evm.meterGas = true
 }
+
+func (evm *EVM) StopDebug() {
+	evm.Config.Debug = false
+}
+
+func (evm *EVM) StartDebug() {
+	evm.Config.Debug = true
+}

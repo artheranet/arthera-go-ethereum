@@ -255,6 +255,9 @@ func (t *jsTracer) CaptureState(env *vm.EVM, pc uint64, op vm.OpCode, gas, cost 
 	if t.err != nil {
 		return
 	}
+	if t.env == nil {
+		t.env = env
+	}
 
 	log := t.log
 	log.op.op = op
