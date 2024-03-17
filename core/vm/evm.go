@@ -579,9 +579,13 @@ func (evm *EVM) StartGasMetering() {
 }
 
 func (evm *EVM) StopDebug() {
-	evm.Config.Debug = false
+	if evm.Config.Tracer != nil {
+		evm.Config.Debug = false
+	}
 }
 
 func (evm *EVM) StartDebug() {
-	evm.Config.Debug = true
+	if evm.Config.Tracer != nil {
+		evm.Config.Debug = true
+	}
 }
