@@ -174,7 +174,7 @@ func NewEVM(blockCtx BlockContext, txCtx TxContext, statedb StateDB, chainConfig
 	if config.EVMInterpreter != "" {
 		evm.interpreters = append(evm.interpreters, &EVMC{evmModule, evm, evmc.CapabilityEVM1, false})
 	} else {
-		evm.interpreters = append(evm.interpreters, NewEVMInterpreter(evm, config))
+		evm.interpreters = append(evm.interpreters, NewEVMInterpreter(evm))
 	}
 
 	evm.interpreter = evm.interpreters[0]
@@ -203,6 +203,13 @@ func (evm *EVM) Cancelled() bool {
 // Interpreter returns the current interpreter
 func (evm *EVM) Interpreter() Interpreter {
 	return evm.interpreter
+}
+
+// SetBlockContext updates the block context of the EVM.
+func (evm *EVM) SetBlockContext(blockCtx BlockContext) {
+	evm.Context = blockCtx
+	num := blockCtx.BlockNumber
+	evm.chainRules = evm.chainConfig.Rules(num)
 }
 
 // Call executes the contract associated with the addr with the given input as
