@@ -139,7 +139,7 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 			DiscoveryV5:      true,
 			BootstrapNodesV5: config.BootstrapNodes.nodes,
 			ListenAddr:       ":0",
-			NAT:              nat.Any(),
+			NAT:              nat.MustFromSpec("any"),
 			MaxPeers:         config.MaxPeers,
 		},
 	}
